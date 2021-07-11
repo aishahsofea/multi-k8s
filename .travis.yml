@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t aishahsofea/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true aishahsofea/react-test yarn test
+
+after_success:
+  - docker build -t aishahsofea/multi-client ./client
+  - docker build -t aishahsofea/multi-nginx ./nginx
+  - docker build -t aishahsofea/multi-server ./server
+  - docker build -t aishahsofea/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push aishahsofea/multi-client
+  - docker push aishahsofea/multi-nginx
+  - docker push aishahsofea/multi-server
+  - docker push aishahsofea/multi-worker
